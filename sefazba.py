@@ -159,3 +159,16 @@ def snake(source):
     source = re.sub(' +', ' ', source)
     return snakecase(normalize('NFKD', source.lower()).encode(
         'ASCII', 'ignore').decode('ASCII'))
+
+
+url = 'http://nfe.sefaz.ba.gov.br/servicos/nfce/qrcode.aspx?p=29200597422620001041650120002081901799884007|2|1|1|A9EB0D25898B7241D80D94FC0947A452B5091CEC'
+url = 'http://nfe.sefaz.ba.gov.br/servicos/nfce/qrcode.aspx?p=29200597422620004067650020001862161628617124|2|1|1|4F3382BF7029FC19B55AE6C0F08685AE39828057'
+url = 'http://nfe.sefaz.ba.gov.br/servicos/nfce/qrcode.aspx?p=29200573849952001120650120000916261977709247|2|1|1|524F7C982976B6433EF7DC0828D503DD50D7B828'
+
+
+sefaz = SefazBa(url)
+# sefaz.dinamic_colector(TipoInfo.nfe)
+# data = sefaz.dinamic_colector(TipoInfo.produtos)
+data = sefaz.getNota()
+with open('data.json', 'w', encoding='utf-8') as fp:
+    json.dump(data, fp)
