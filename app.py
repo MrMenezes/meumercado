@@ -1,3 +1,4 @@
+import os
 from flask import Flask, json, Response, request, jsonify
 from sefazba import SefazBa, TipoInfo
 app = Flask(__name__)
