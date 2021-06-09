@@ -4,8 +4,7 @@ from enum import Enum
 from typing import List
 import requests
 from bs4 import BeautifulSoup
-from unicodedata import normalize
-from util.util import snake
+from util.util import normalize_data, snake
 
 
 class TipoInfo(Enum):
@@ -38,11 +37,11 @@ class SefazBa:
         return nota
 
     def save_state(self, soup):
-        self.view_state = soup.find('input', id='__VIEWSTATE').get("value")
+        self.view_state = soup.find('input', id='__VIEWSTATE').get('value')
         self.event_validation = soup.find(
-            'input', id='__EVENTVALIDATION').get("value")
+            'input', id='__EVENTVALIDATION').get('value')
         self.view_state_generator = soup.find(
-            'input', id='__VIEWSTATEGENERATOR').get("value")
+            'input', id='__VIEWSTATEGENERATOR').get('value')
 
     def dinamic_colector(self, tipo: TipoInfo):
         if tipo.value is None:
@@ -59,25 +58,24 @@ class SefazBa:
             }
             response = self.session.post(
                 self.url_request, data=data, verify=False)
-        soup = BeautifulSoup(normalize(
-            "NFKD", response.text), 'html.parser')
+        soup = BeautifulSoup(normalize_data(response.text), 'html.parser')
         self.save_state(soup)
 
         data = dict()
-        td_titulo = soup.find("td", {"class": "table-titulo-aba"})
+        td_titulo = soup.find('td', {'class': 'table-titulo-aba'})
 
         titulo_aba = snake(td_titulo.text)
-        tds_aba = td_titulo.parent.parent.next_sibling.find_all("td")
+        tds_aba = td_titulo.parent.parent.next_sibling.find_all('td')
         if len(tds_aba) > 0 or tipo != TipoInfo.produtos:
             data[titulo_aba] = dict()
             for td in tds_aba:
                 if td.label is None:
                     continue
                 label = snake(td.label.text)
-                if "".join(td.span.get("class")).find("lin") > -1:
+                if ''.join(td.span.get('class')).find('lin') > -1:
                     temp_span_value = td.span.text.strip()
                     # Endereço - Número
-                    separator = "-" if temp_span_value.find("-") > -1 else ","
+                    separator = '-' if temp_span_value.find('-') > -1 else ','
                     span_value = separator.join([va.strip()
                                                  for va in temp_span_value.split(separator)])
                 else:
@@ -85,11 +83,11 @@ class SefazBa:
                 data[titulo_aba][label] = span_value
 
             td_titulos_aba_interna = soup.find_all(
-                "td", {"class": "table-titulo-aba-interna"})
+                'td', {'class': 'table-titulo-aba-interna'})
             for td_titulos_interno in td_titulos_aba_interna:
                 titulo_interno = snake(td_titulos_interno.text)
                 tds_aba_interna = td_titulos_interno.parent.parent.next_sibling.find_all(
-                    "td")
+                    'td')
                 data[titulo_interno] = dict()
 
                 if len(tds_aba_interna) == 0 or tds_aba_interna[0].span is None or tds_aba_interna[0].label is None:
@@ -101,19 +99,19 @@ class SefazBa:
         else:
             data[titulo_aba] = list()
             produtos = soup.find_all(
-                "td", {"class": "table_produtos"})
+                'td', {'class': 'table_produtos'})
             for produto in produtos:
                 produto_data = dict()
-                for td in produto.table.find_all("td"):
+                for td in produto.table.find_all('td'):
                     label = snake(td.label.text)
                     produto_data[label] = td.span.text.strip()
 
                 table_td = produto.find(
-                    "table", {"class": "toggable"}).find_all("table")
+                    'table', {'class': 'toggable'}).find_all('table')
                 table_td_filter = table_td[:min([i if ['table-titulo-aba-interna'] == x.td.get('class') else len(
                     table_td) for i, x in enumerate(table_td)])]
                 for td_titulos_interno in table_td_filter:
-                    findall_td = td_titulos_interno.find_all("td")
+                    findall_td = td_titulos_interno.find_all('td')
                     tds_aba_interna = findall_td[:min([i if 'table' == x.next.name else len(
                         findall_td) for i, x in enumerate(findall_td)])]
                     for td in tds_aba_interna:
@@ -123,12 +121,12 @@ class SefazBa:
                         produto_data[label] = td.span.text.strip()
 
                 td_titulos_aba_interna = produto.find(
-                    "table", {"class": "toggable"}).find_all(
-                    "td", {"class": "table-titulo-aba-interna"})
+                    'table', {'class': 'toggable'}).find_all(
+                    'td', {'class': 'table-titulo-aba-interna'})
                 for td_titulos_interno in td_titulos_aba_interna:
                     titulo_interno = snake(td_titulos_interno.text)
                     tds_aba_interna = td_titulos_interno.parent.parent.next_sibling.find_all(
-                        "td")
+                        'td')
                     produto_data[titulo_interno] = dict()
 
                     if len(tds_aba_interna) == 0 or tds_aba_interna[0].span is None or tds_aba_interna[0].label is None:
