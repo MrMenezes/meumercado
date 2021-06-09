@@ -38,7 +38,7 @@ def totais(p):
 def nota(p):
     url = 'http://nfe.sefaz.ba.gov.br/servicos/nfce/qrcode.aspx?p=' + p
     sefaz = SefazBa(url)
-    data = sefaz.getNota()
+    data = sefaz.get_nota()
     json_string = json.dumps(data, ensure_ascii=False)
     response = Response(
         json_string, content_type="application/json; charset=utf-8")

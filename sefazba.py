@@ -4,10 +4,8 @@ from enum import Enum
 from typing import List
 import requests
 from bs4 import BeautifulSoup
-import base64
 from unicodedata import normalize
-from stringcase import snakecase
-import re
+from util.util import snake
 
 
 class TipoInfo(Enum):
@@ -28,7 +26,7 @@ class SefazBa:
         self.session = requests.Session()
         self.session.get(url)
 
-    def getNota(self):
+    def get_nota(self):
         nota = dict()
         nota['nfe'] = self.dinamic_colector(TipoInfo.nfe)
         nota['emitente'] = self.dinamic_colector(TipoInfo.emitente)
@@ -38,14 +36,6 @@ class SefazBa:
         nota['totais'] = self.dinamic_colector(TipoInfo.totais)
         nota['infadicionais'] = self.dinamic_colector(TipoInfo.infadicionais)
         return nota
-
-    def base64(self):
-        html_base64 = base64.b64decode(
-            self.view_state).decode('utf-8', errors='replace')
-        start = html_base64.find("<link")
-        end = html_base64.rfind("</div>") + 6
-        html_parse = html_base64[start:end]
-        return BeautifulSoup(html_parse, 'html.parser')
 
     def save_state(self, soup):
         self.view_state = soup.find('input', id='__VIEWSTATE').get("value")
@@ -152,10 +142,4 @@ class SefazBa:
         return(data)
 
 
-def snake(source):
-    source = source.split(":")[0].strip() if source.find(
-        ":") > 0 else source.strip()
-    source = re.sub(r'[\W_]+ ', '', source)
-    source = re.sub(' +', ' ', source)
-    return snakecase(normalize('NFKD', source.lower()).encode(
-        'ASCII', 'ignore').decode('ASCII'))
+
